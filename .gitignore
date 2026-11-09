@@ -10,3 +10,8 @@ __pycache__/
 # Local secrets, if any are ever added
 .env
 *.key
+
+# Private project files (not for the public repo)
+Show_Bible.pdf
+project_instructions.txt
+SF_Bay_Area_Artificial_News_Project.zip
