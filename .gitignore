@@ -15,3 +15,11 @@ __pycache__/
 Show_Bible.pdf
 project_instructions.txt
 SF_Bay_Area_Artificial_News_Project.zip
+
+# Prototype output (generated, private)
+episodes/
+state/
+logs/
+
+# Never commit key files
+keys.txt

@@ -1,0 +1,128 @@
+{
+  "_note": "Model IDs were taken from each provider's own docs on 2026-11-09. Change them here if a provider renames a model. API keys are read from the environment variables named in key_env and are never stored in files.",
+  "user_agent": "OfficiallyArtificialNews-prototype/0.1",
+  "models": {
+    "russ": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5"
+    },
+    "jenny": {
+      "provider": "openai",
+      "model": "gpt-6.1-sol"
+    },
+    "pat": {
+      "provider": "gemini",
+      "model": "gemini-3.8-flash"
+    },
+    "editor": {
+      "provider": "gemini",
+      "model": "gemini-3.8-flash"
+    }
+  },
+  "key_env": {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "artificial_analysis": "ARTIFICIAL_ANALYSIS_API_KEY"
+  },
+  "weather_points": [
+    {
+      "label": "San Francisco",
+      "lat": 37.7749,
+      "lon": -122.4194
+    },
+    {
+      "label": "Oakland",
+      "lat": 37.8044,
+      "lon": -122.2712
+    },
+    {
+      "label": "San Jose",
+      "lat": 37.3382,
+      "lon": -121.8863
+    }
+  ],
+  "weather_periods_per_city": 3,
+  "gdacs_event_types": "TC;FL",
+  "gdacs_days_back": 3,
+  "gdelt_world_queries": [
+    "sourcelang:english (election OR government OR parliament OR president OR court)",
+    "sourcelang:english (war OR ceasefire OR military OR attack OR strike)",
+    "sourcelang:english (economy OR inflation OR markets OR tariffs OR trade)",
+    "sourcelang:english (earthquake OR flood OR storm OR wildfire OR disaster)",
+    "sourcelang:english (health OR outbreak OR vaccine OR hospital)"
+  ],
+  "gdelt_ai_query": "sourcelang:english (\"artificial intelligence\" OR \"large language model\" OR \"AI model\" OR chatbot)",
+  "gdelt_records_per_query": 20,
+  "hn_keywords_regex": "\\b(AI|LLMs?|GPT|OpenAI|Anthropic|Claude|Gemini|Llama|Mistral|DeepSeek|agents?|benchmarks?|neural|machine learning|robots?|chips?|GPUs?)\\b",
+  "hype_claim_regex": "(beats|outperforms|surpasses|state-of-the-art|record|breakthrough|tops|best|benchmark|percent|%|faster|smarter|\\bscores?\\b|\\bhighest\\b|\\branks?\\b|\\bleads\\b|#1|\\bSOTA\\b)",
+  "budgets": {
+    "tease": 50,
+    "tech": 340,
+    "hype": 260,
+    "world": 300,
+    "weather": 150,
+    "warriors": 225,
+    "signoff_open": 25,
+    "signoff_reply": 20,
+    "signoff_close": 15,
+    "hype_empty": 60,
+    "react_news": 300,
+    "react_weather": 150,
+    "react_sports": 200
+  },
+  "calm_down": {
+    "intensity_threshold": 8,
+    "cooldown_episodes": 3,
+    "always_fire_at": 10
+  },
+  "words_per_minute": 150,
+  "name_allowlist": [
+    "Artificial Analysis",
+    "Artificial News",
+    "Bay Area",
+    "Bay Area's Officially Artificial News",
+    "Big Russ",
+    "Calling Out",
+    "Calling Out the Hype",
+    "Dub Nation",
+    "Fahrenheit",
+    "Golden State",
+    "Hacker News",
+    "Jenny",
+    "Justice Jenny",
+    "Los Angeles",
+    "National Weather",
+    "New York",
+    "Officially Artificial",
+    "Pat",
+    "Russ",
+    "SF Bay Area",
+    "SF Bay Area's Officially Artificial News",
+    "San Francisco",
+    "San Jose",
+    "United States",
+    "Weather Service"
+  ],
+  "ai_title_regex": "\\b(AI|A\\.I\\.|artificial intelligence|OpenAI|Anthropic|Claude|ChatGPT|Gemini|LLMs?|large language models?|chatbots?|machine learning|generative|Nvidia|GPUs?|neural|DeepSeek|Copilot|Grok|Llama|Mistral|robots?|robotics)\\b",
+  "roundtable_words_per_turn": 30,
+  "anchor_engines": {
+    "russ": {
+      "name": "Big Russ",
+      "label": "Claude, made by Anthropic",
+      "maker_regex": "(?i)\\b(Claude|Anthropic)\\b"
+    },
+    "jenny": {
+      "name": "Justice Jenny",
+      "label": "ChatGPT, made by OpenAI",
+      "maker_regex": "(?i)\\b(OpenAI|ChatGPT|GPT|Codex|Sora)\\b"
+    },
+    "pat": {
+      "name": "Pat",
+      "label": "Gemini, made by Google",
+      "maker_regex": "(?i)\\b(Gemini|Google|DeepMind|Alphabet)\\b"
+    }
+  },
+  "disclosure_regex": "(?i)(disclos|conflict of interest|my maker|my makers|my own maker|built on|built by|made by|runs? on|powered by|my engine|my own company)",
+  "gdelt_spacing_seconds": 10
+}

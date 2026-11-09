@@ -193,6 +193,36 @@ def leaders(rows, label):
     return top, [n for v, n in vals if v == top]
 
 
+FT_MIN_ATTEMPTS = 5
+
+
+def _made_att(text):
+    """Parse an 'M-A' box score cell such as '4-5' into (made, attempts), else None."""
+    m = re.fullmatch(r"\s*(\d+)\s*-\s*(\d+)\s*", str(text or ""))
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def ft_leader(rows, min_attempts=FT_MIN_ATTEMPTS):
+    """Best free throw percentage among players with at least min_attempts attempts.
+    Returns (pct, made, attempts, [names]) including ties, or None if nobody qualifies."""
+    best = []
+    for r in rows:
+        if not r["played"]:
+            continue
+        ma = _made_att(r["stats"].get("FT"))
+        if not ma or ma[1] < min_attempts:
+            continue
+        best.append((round(100.0 * ma[0] / ma[1], 1), ma[0], ma[1], r["name"]))
+    if not best:
+        return None
+    top = max(b[0] for b in best)
+    tied = [b for b in best if b[0] == top]
+    # Ties on percentage: report each player's own made/attempts only when they agree.
+    if len({(b[1], b[2]) for b in tied}) > 1:
+        tied = sorted(tied, key=lambda b: -b[2])[:1]  # more attempts is the stronger line
+    return top, tied[0][1], tied[0][2], [b[3] for b in tied]
+
+
 # --------------------------------------------------------------------------
 # Building facts
 # --------------------------------------------------------------------------
@@ -269,14 +299,25 @@ def build_facts(event, gs, opp, summary, scoreboard_url, summary_url, retrieved_
 
     # Player leaders
     for abbr, rows in players.items():
-        for label, word in (("PTS", "points"), ("REB", "rebounds"), ("AST", "assists")):
+        for label, word in (("PTS", "points"), ("REB", "rebounds"), ("AST", "assists"),
+                            ("STL", "steals"), ("BLK", "blocks")):
             if abbr != gs_abbr and label != "PTS":
                 continue  # opponent: top scorer only
             top = leaders(rows, label)
             if top:
                 val, names = top
+                if label in ("STL", "BLK") and val == 0:
+                    continue  # nobody recorded one; not a leader
                 add(f"leader.{abbr}.{label}", "player_leader", abbr, val,
                     f"{' / '.join(names)}: {val} {word}", summary_url, athletes=names)
+
+    # Warriors free throw leader (best percentage, minimum FT_MIN_ATTEMPTS attempts)
+    ft = ft_leader(players.get(gs_abbr, []))
+    if ft:
+        pct, made, att, names = ft
+        add(f"leader.{gs_abbr}.FTPCT", "player_leader", gs_abbr, pct,
+            f"{' / '.join(names)}: {made} of {att} free throws ({pct}%)", summary_url,
+            athletes=names, made=made, attempts=att)
 
     # Documented events for Pat (only things ESPN actually records)
     for abbr, rows in players.items():

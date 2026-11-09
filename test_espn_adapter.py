@@ -12,8 +12,8 @@ import espn_adapter as ea
 LABELS = ["MIN", "PTS", "FG", "3PT", "FT", "REB", "AST", "TO", "STL", "BLK", "OREB", "DREB", "PF", "+/-"]
 
 
-def athlete(name, pts, reb, ast, ejected=False, dnp=False):
-    stats = [] if dnp else ["30", str(pts), "5-10", "1-3", "2-2", str(reb), str(ast), "1", "0", "0", "1", "2", "2", "0"]
+def athlete(name, pts, reb, ast, ejected=False, dnp=False, stl=0, blk=0, ft="2-2"):
+    stats = [] if dnp else ["30", str(pts), "5-10", "1-3", ft, str(reb), str(ast), "1", str(stl), str(blk), "1", "2", "2", "0"]
     return {"athlete": {"id": "id-" + name.replace(" ", ""), "displayName": name}, "starter": True, "didNotPlay": dnp,
             "ejected": ejected, "stats": stats}
 
@@ -35,9 +35,9 @@ def scoreboard(completed=True, gs_score="110", opp_score="100", date="20261105")
              "team": {"abbreviation": "MIA", "displayName": "Miami Heat"}, "records": []}]}]}]}
 
 
-def summary(gs_pts=(40, 30, 40), opp_pts=(60, 40), plays=None, ejected=False):
+def summary(gs_pts=(40, 30, 40), opp_pts=(60, 40), plays=None, ejected=False, extra=None):
     gs = [athlete("Player A", gs_pts[0], 4, 9), athlete("Player B", gs_pts[1], 12, 3, ejected=ejected),
-          athlete("Player C", gs_pts[2], 2, 1), athlete("Bench DNP", 0, 0, 0, dnp=True)]
+          athlete("Player C", gs_pts[2], 2, 1), athlete("Bench DNP", 0, 0, 0, dnp=True)] + (extra or [])
     opp = [athlete("Opp X", opp_pts[0], 5, 5), athlete("Opp Y", opp_pts[1], 6, 6)]
     s = {"boxscore": {
         "players": [team_block("GS", gs), team_block("MIA", opp)],
@@ -93,6 +93,35 @@ class Tests(unittest.TestCase):
         self.assertEqual(ids["999.record.GS"]["value"], "5-2")
         self.assertEqual(res["quality"]["flags"], [])
         self.assertFalse(res["quality"]["plays_available"])
+
+
+    def test_steals_blocks_and_ft_leaders(self):
+        extra = [athlete("Player D", 10, 3, 2, stl=3, blk=1, ft="5-6"),
+                 athlete("Player E", 8, 2, 2, stl=1, blk=4, ft="4-4"),     # 100% but under 5 attempts
+                 athlete("Player F", 6, 2, 2, stl=3, blk=0, ft="4-5")]     # ties D on steals; 80% < 83.3%
+        res, _ = self.run_adapter(scoreboard(gs_score="134"), summary(extra=extra))
+        ids = {f["id"]: f for f in res["facts"]}
+        self.assertEqual(ids["999.leader.GS.STL"]["value"], 3)
+        self.assertEqual(ids["999.leader.GS.STL"]["athletes"], ["Player D", "Player F"])  # tie kept
+        self.assertEqual(ids["999.leader.GS.BLK"]["athletes"], ["Player E"])
+        ft = ids["999.leader.GS.FTPCT"]
+        self.assertEqual(ft["athletes"], ["Player D"])
+        self.assertEqual((ft["made"], ft["attempts"], ft["value"]), (5, 6, 83.3))
+        self.assertNotIn("999.leader.MIA.STL", ids)
+
+    def test_no_zero_steals_or_blocks_and_no_ft_leader_under_minimum(self):
+        res, _ = self.run_adapter(scoreboard(), summary())  # fixture: 0 stl/blk, FT 2-2 for all
+        ids = {f["id"] for f in res["facts"]}
+        self.assertNotIn("999.leader.GS.STL", ids)
+        self.assertNotIn("999.leader.GS.BLK", ids)
+        self.assertNotIn("999.leader.GS.FTPCT", ids)
+
+    def test_ft_tie_with_same_line_keeps_both(self):
+        extra = [athlete("Player D", 10, 3, 2, ft="5-5"), athlete("Player E", 8, 2, 2, ft="5-5")]
+        res, _ = self.run_adapter(scoreboard(gs_score="128"), summary(extra=extra))
+        ft = {f["id"]: f for f in res["facts"]}["999.leader.GS.FTPCT"]
+        self.assertEqual(ft["athletes"], ["Player D", "Player E"])
+        self.assertEqual(ft["value"], 100.0)
 
     def test_every_fact_has_source_and_url(self):
         res, _ = self.run_adapter(scoreboard(), summary())
